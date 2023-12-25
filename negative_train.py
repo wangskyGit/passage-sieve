@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append('./')
-sys.path.append('../')
+
 
 import random
 from transformers import BertModel, BertTokenizer,BertConfig
@@ -16,8 +16,8 @@ import os
 import collections
 import numpy as np
 import argparse
-from AR2.utils.util import normalize_passage,normalize_question,_normalize
-from AR2.utils.dpr_utils import (
+from utils.util import normalize_passage,normalize_question,_normalize
+from utils.dpr_utils import (
     load_states_from_checkpoint,
     get_model_obj,
     all_gather_list
@@ -87,32 +87,32 @@ def get_arguments():
         "--num_hard_negatives",
         default=5,
         type=int,
-        help='number of candidates hard negatives'
+        help='number of hard negatives during training'
     )
     parser.add_argument(
         "--num_negatives_eval",
         default=5,
         type=int,
-        help='number of candidates hard negatives'
+        help='number of candidates hard negatives during inferencing'
     )
 
     parser.add_argument(
         "--model_path",
-        default='~/wsq/DPR/outputs/2023-05-31/08-33-38/output/dpr_biencoder.15',
+        default='~/DPR/outputs/2023-05-31/08-33-38/output/dpr_biencoder.15',
         type=str,
-        help='Model path for context encoder model'
+        help='Model path for the initial retrieval encoder model'
     )
     parser.add_argument(
         "--ctx_model_path",
         default='nghuyong/ernie-2.0-base-en',
         type=str,
-        help='Model path for context encoder model'
+        help='Model name for context encoder model'
     )
     parser.add_argument(
         "--qry_model_path",
         default='nghuyong/ernie-2.0-base-en',
         type=str,
-        help='Model path for qry encoder model'
+        help='Model name for qry encoder model'
     )
     parser.add_argument(
         "--path_to_dataset",
@@ -484,44 +484,7 @@ def main_work():
             np.save(pt_save_directory + '/rawIndex',raw_index)
         if args.local_rank != -1:
             dist.barrier()
-        # if epoch % 5==0 and is_first_worker():
-        #     tokenizer.save_pretrained(pt_save_directory + '/qry')
-        #     model_to_save = get_model_obj(model)
-        #     state = CheckpointState(model_to_save.state_dict(),
-        #                             epoch
-        #                             )
-        #     torch.save(state._asdict(), pt_save_directory +'/samplesieve.ckpt')
-        #     torch.distributed.barrier()
-        # data = load_data(args)
-        # build_train_dataset = data[0]q
-        # train_dataset = Dataset.from_dict(build_train_dataset)
-        # train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        # if args.valid:
-        #     model.eval()
-        #     correct_num = 0
-        #     whole_num = 0
-        #     whole_loss = 0
-        #     for index, sample in enumerate(dev_dataloader):
-        #         with torch.no_grad():
-        #             positive = torch.tensor(list(range(len(sample['answer'])))).to(device)
-        #             sample['answer'].extend(sample['negative'])
-        #             ctx = ctx_tokenizer(sample['answer'], padding=True, truncation=True, max_length=512,
-        #                                 return_tensors='pt')
-        #             qry = qry_tokenizer(sample['query'], padding=True, truncation=True, max_length=512,
-        #                                 return_tensors='pt')
-        #             ctx = {k: v.to(device) for k, v in ctx.items()}
-        #             qry = {k: v.to(device) for k, v in qry.items()}
-        #             batch = {'ctx': ctx, 'qry': qry, 'positive': positive}
-        #             loss, accuracy = model(batch)
-        #             whole_loss += loss
-        #             whole_num += dev_batch_size
-        #             correct_num += dev_batch_size * accuracy
-        #     whole_accuracy = float(correct_num) / whole_num
-        #     print('eval loss: ', whole_loss)
-        #     print('eval accuracy: ', whole_accuracy)
-        #     build_dev_dataset = data[1]
-        #     dev_dataset = Dataset.from_dict(build_dev_dataset)
-        #     dev_dataloader = DataLoader(dev_dataset, batch_size=args.batch_size, shuffle=True)
+        
     tqdm.write("=======final evaluation=======")
     file_path=args.path_to_dataset
     with open(file_path, 'r', encoding="utf-8") as f:
@@ -600,38 +563,12 @@ def main_work():
             global_step+=1
             cur_index+=query_num
             
-        # pt_save_directory = save_base_directory + str(args.global_step)+'final'
-        # loss_v_neg=loss_v_total[:,:-1]
-        # if args.local_rank in [-1,0]:
-        #     if not os.path.exists(pt_save_directory): #判断所在目录下是否有该文件名的文件夹
-        #         os.mkdir(pt_save_directory)
-        #     np.save(pt_save_directory + '/lossV',loss_v_neg)
-        #     np.save(pt_save_directory + '/loss',loss_total)
-        #     np.save(pt_save_directory + '/hnIndex',hn_index)
-        #     np.save(pt_save_directory + '/rawIndex',raw_index)
-        # if args.local_rank != -1:
-        #     dist.barrier()
-        # if args.local_rank != -1:
-        #     dist.barrier()
+        
         if args.local_rank != -1:
             dist.barrier()
     if args.local_rank in [0,-1]:
         print('generate new sieved datasets')
-        #loss_v=sieve_score
-        # for i in tqdm(range(len(pre_data))):
-        #     sample=pre_data[raw_index[i]]
-        #     negs=sample["hard_negative_ctxs"]
-        #     v=loss_v_neg[i,:].astype(bool)
-        #     if len(negs) < num_negatives_eval:
-        #             negs = negs*num_negatives_eval
-        #     if sum(v)==0:
-        #         v[random.randint(0,len(v)-1)]=True
-        #     if len(negs)<max(hn_index[i,:][v]):   
-        #         print(i) 
-        #         print(len(negs))
-        #         print(hn_index[i,:][v])
-        #         continue
-        #     sample["hard_negative_ctxs"]=[negs[int(k)] for k in hn_index[i,:][v]]
+        
         with open(file_path,'w') as f:
             json.dump(pre_data,f)
     if args.local_rank != -1:

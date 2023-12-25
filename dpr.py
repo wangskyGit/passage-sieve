@@ -6,7 +6,7 @@ import transformers
 import torch.nn.functional as F
 from torch import nn
 from torch.utils.checkpoint import checkpoint
-from AR2.sieve.loss import loss_my_cores,loss_my_cores_pos,loss_my_cores_positive_v2
+from sieve.loss import loss_my_cores,loss_my_cores_pos,loss_my_cores_positive_v2
 from typing import Tuple
 from torch import Tensor as T
 from torch import nn
