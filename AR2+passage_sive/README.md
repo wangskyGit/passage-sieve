@@ -21,4 +21,4 @@ bash ../train_ms.sh # for MS-pas dataset
 ```
 
 ### Final checkpoints
-The final checkponits of all datasets will be released once the paper are accepted.
+The final checkponits of all datasets will be released soon.
