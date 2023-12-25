@@ -48,8 +48,4 @@ This repo is for passage sieve and if you wish to directly leverage the contrast
 During the usage of the CCR, there are several guidelines:
 
 1. You should use consine similarity priorly. And in this case, we recommend you to tuning beta from [0,1,0.2,0.3,...,1.0] if you got enough resources, otherwise 0.5 should be a good choice. And we recommend you to add the CCR after some normal training instead of directly use it from the begining.
-2. If you still wish to use Dot-Product similarity like in the original DPR paper, we recommend you to choose much smaller beta, e.g. 1e-4, 1e-3, and also consider adding this regular term only later in the training
-
-## What if Beta is negative?
-
-Actually, we have some interesting intermediate results during the experiments. When the beta is negative, 
+2. If you still wish to use Dot-Product similarity like in the original DPR paper, we recommend you to choose much smaller beta, e.g. 1e-4, 1e-3, and also consider adding this regular term only later in the training 
