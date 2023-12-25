@@ -566,12 +566,23 @@ def main_work():
         
         if args.local_rank != -1:
             dist.barrier()
-    if args.local_rank in [0,-1]:
-        print('generate new sieved datasets')
-        
-        with open(file_path,'w') as f:
-            json.dump(pre_data,f)
+    
     if args.local_rank != -1:
-            dist.barrier()
+        print('generate new sieved datasets')
+        with open(file_path+str(args.local_rank),'w') as f:
+            json.dump(sieved_dataset,f)
+        dist.barrier()
+    if args.local_rank == 0:
+        agg_dataset=[]
+        for i in range(args.world_size):
+            with open(file_path+str(i),'r') as f:
+                agg_dataset+=json.load(f)
+        print('total len of aggregated dataset:',len(agg_dataset))
+        with open(file_path,'w') as f:
+            json.dump(agg_dataset,f)
+
+    if args.local_rank != -1:
+        dist.barrier()
+    
 if __name__ == "__main__":
     main_work()
