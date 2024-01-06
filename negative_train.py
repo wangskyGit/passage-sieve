@@ -55,7 +55,7 @@ def get_arguments():
     ) 
     parser.add_argument(
         "--mode",
-        default='neg',
+        default='pos',
         type=str,
         help='neg or pos mode'
     ) 
@@ -364,8 +364,6 @@ def load_model(args):
     # Load pretrained model and tokenizer
     if args.local_rank not in [-1, 0]:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
-    # ctx_tokenizer = DPRContextEncoderTokenizer.from_pretrained(args.ctx_model_path)
-    # qry_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(args.qry_model_path)
     saved_state = load_states_from_checkpoint(args.model_path)
     model = BiEncoder(args)
     model.load_state_dict(saved_state.model_dict,strict=False)
@@ -386,9 +384,6 @@ def main_work():
     #args.local_rank=int(os.environ['LOCAL_RANK'])
     set_env(args)
     device=args.device
-    # data = load_data(args)
-    # build_train_dataset = data[0]
-    # train_dataset = Dataset.from_dict(build_train_dataset)
     model,tokenizer=load_model(args)
     if args.local_rank == 0:
         print(args)
@@ -399,11 +394,6 @@ def main_work():
                                     )
     train_sample = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset,shuffle=False)
     train_dataloader = DataLoader(train_dataset, collate_fn=TraditionDataset.get_collate_fn(args.num_hard_negatives),sampler=train_sample,batch_size=args.batch_size, shuffle=False)
-    # if args.valid:
-    #     build_dev_dataset = data[1]
-    #     dev_dataset = Dataset.from_dict(build_dev_dataset)
-    #     dev_dataloader = DataLoader(dev_dataset, batch_size=args.batch_size, shuffle=True)
-    #     dev_batch_size = args.batch_size
     tb_writer = None
     if is_first_worker():
         if not os.path.exists(args.log_dir):
@@ -484,7 +474,7 @@ def main_work():
             np.save(pt_save_directory + '/rawIndex',raw_index)
         if args.local_rank != -1:
             dist.barrier()
-        
+    #After training, we need to use the trained model to do inference to get a final sieved dataset.
     tqdm.write("=======final evaluation=======")
     file_path=args.path_to_dataset
     with open(file_path, 'r', encoding="utf-8") as f:
@@ -497,7 +487,8 @@ def main_work():
     print("Total cleaned data size: {}".format(len(pre_data)))
     pre_data=pre_data[:]
     if args.renew:
-        
+        # if renew is false we will use the same dataset as training to do inferencing,
+        #otherwise, we will use a new dataset, which can contain much more candidate negatives as we dont need to do backward
         train_dataset =TraditionDataset(file_path=args.path_to_dataset,tokenizer=tokenizer,num_hard_negatives=args.num_negatives_eval,
                                     shuffle_positives=True,max_seq_length=256
                                     )
@@ -514,6 +505,7 @@ def main_work():
     loss_v_total=np.ones((train_dataset.num_queries,num_negatives_eval+1))
     hn_index=np.zeros((train_dataset.num_queries,num_negatives_eval))
     loss_total=np.zeros((train_dataset.num_queries,num_negatives_eval+1))
+    sieved_dataset=[]
     with torch.no_grad():
         for index, sample in enumerate(tqdm(train_dataloader)):
             raw_index=sample['index']
@@ -534,7 +526,7 @@ def main_work():
             loss_total[cur_index:cur_index+query_num,:]=loss_sel.reshape((query_num,num_negatives_eval+1))
             temp_v=loss_v_total[:cur_index+query_num,:]
             sieve_rate=1-temp_v.sum()/(temp_v.size)
-            loss_v_neg=loss_v[:,:-1]
+            loss_v_neg=loss_v[:,:-1]#we dont need to sieve the positive passages
             for i in range(len(raw_index)):
                 sample_i=pre_data[raw_index[i]]
                 negs=sample_i["hard_negative_ctxs"]
@@ -543,12 +535,13 @@ def main_work():
                         negs = negs*num_negatives_eval
                 if sum(v)==0:
                     v[random.randint(0,len(v)-1)]=True
-                if len(negs)<max(hn_index[i,:][v]):   
+                if len(negs)<max(hn_index[i,:][v]): #for debug
                     print(i) 
                     print(len(negs))
                     print(hn_index[i,:][v])
                     continue
                 sample_i["hard_negative_ctxs"]=[negs[int(k)] for k in hn_index[i,:][v]]
+                sieved_dataset.append(sample_i)
             if index % 100 == 0 and args.local_rank in [-1,0]:
                 tqdm.write(f'lr: {lr_scheduler.get_last_lr()},over-average-positive rate:{hit1.cpu().detach().numpy() },{hit2.cpu().detach().numpy() }')
                 tqdm.write('sieved out rate:{}'.format(sieve_rate))
@@ -566,7 +559,7 @@ def main_work():
         
         if args.local_rank != -1:
             dist.barrier()
-    
+    #Store the sieved dataset in DDP setting
     if args.local_rank != -1:
         print('generate new sieved datasets')
         with open(file_path+str(args.local_rank),'w') as f:

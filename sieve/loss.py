@@ -150,8 +150,9 @@ def loss_my_cores_positive_v2(epoch, probs,y,device='cuda',noise_prior = None):
         return torch.mean(loss_final)/100000000
     else:
         return torch.sum(loss_final)/sum(loss_v), loss_v.reshape(probs.shape).astype(int),probs.flatten().data.cpu().numpy()
+
 def f_beta(epoch):
-    beta1 = np.linspace(1.0, 1.0, num=10)
+    beta1 = np.linspace(0.1, 0.1, num=10)
     beta2 = np.linspace(0.25, 0.25, num=2)
     beta3 = np.linspace(0.25, 1.0, num=5)
  

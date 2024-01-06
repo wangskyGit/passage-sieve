@@ -3,17 +3,9 @@
 This is the official repo of the AAAI2024 paper Mitigating the Impact of False Negatives in Dense Retrieval with Contrastive Confidence Regularization. The formula of Contrastive Confidence Regularization(CCR) is as follows:
 
 
-$$\ell_{CCR}(p_n^+,q_n) = \mathbb{E}_{\tilde{\mathcal{D}}_{P|q_{n}}}[\ell_{NCE}(p,q_{n})]$$
+![formula](./asset/image.png)
 
-Here, $p$ stands for all the passages during the batch training (including positive and negative ones), $p^+$ for the positive passage, and $q$ for the query. It can help the dense retrieval training robust to the false negative problem, and the final loss function is:
-
-$$
-\ell_{RCL}(p_n^+,q_n) =\ell_{NCE}(p_n^+,q_n)-\beta*\ell_{CCR}(p_n^+,q_n)
-$$
-
-CCR can help the model to be more confident in its prediction and thus avoid overfitting to the noise information.
-
-
+Here, $p$ stands for all the passages during the batch training (including positive and negative ones), $p^+$ for the positive passage, and $q$ for the query. Our proposed CCR can help the dense retrieval training robust to the false negative problem by helping the model to be more confident in its prediction and thus avoid overfitting to the noise information.
 
 
 
@@ -38,6 +30,7 @@ do
     ......
 fi
 ```
+$beta$ in the CCR formulation is controled by function f_beta in ./sieve/loss.py; You might directly modify this function to control the $beta$ during passage-sieve. We will consider add this into the argument in the future.
 
 ## Directly leverage the contrastive confidence regularizer
 
