@@ -11,7 +11,7 @@ Here, $p$ stands for all the passages during the batch training (including posit
 
 ## Usage
 
-This Branch only contains the necessary code for the passage sieve algorithm with confidence regularizer, which can be integrated into the training of any retrieval system.
+This Branch only contains the necessary code for the passage sieve algorithm with confidence regularizer, which can be integrated into the training of any retrieval system. You can refer to the the AR2 branch of this repo for an example implementation of combining passage sieve and AR2.
 
 An example command to do so is :
 
