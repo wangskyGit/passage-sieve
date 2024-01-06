@@ -11,7 +11,7 @@ Here, $p$ stands for all the passages during the batch training (including posit
 
 ## Usage
 
-This Branch only contains the necessary code for the passage sieve algorithm with confidence regularizer, which can be integrated into the training of any retrieval system. You can refer to the the AR2 branch of this repo for an example implementation of combining passage sieve and AR2.
+This Branch only contains the necessary code for the passage sieve algorithm with confidence regularizer, which can be integrated into the training of any retrieval system. You can refer to the AR2 branch of this repo for an example implementation of combining passage sieve and AR2.
 
 An example command to do so is :
 
@@ -30,11 +30,11 @@ do
     ......
 fi
 ```
-$beta$ in the CCR formulation is controled by function f_beta in ./sieve/loss.py; You might directly modify this function to control the $beta$ during passage-sieve. We will consider add this into the argument in the future.
+$\beta$ in the CCR formulation is controlled by function f_beta in./sieve/loss.py; You might directly modify this function to control the $\beta$ during passage-sieve. We will consider adding this to the argument in the future.
 
 ## Directly leverage the contrastive confidence regularizer
 
-This repo is for passage sieve and if you wish to directly leverage the contrastive confidence regularizer(CCR) you can refer to the code in our appendix and sieve/loss.py in this branch.
+This repo is for passage sieve and if you wish to leverage the contrastive confidence regularizer(CCR) directly you can refer to the code in our appendix and sieve/loss.py in this branch.
 
 During the usage of the CCR, there are several guidelines:
 
