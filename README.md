@@ -1,6 +1,6 @@
 # passage-sieve
 
-This is the official repo of the AAAI2024 paper Mitigating the Impact of False Negatives in Dense Retrieval with Contrastive Confidence Regularization. The formula of Contrastive Confidence Regularization(CCR) is as follows:
+🌟 This is the official repo of the AAAI2024 paper Mitigating the Impact of False Negatives in Dense Retrieval with Contrastive Confidence Regularization. The formula of Contrastive Confidence Regularization(CCR) is as follows:
 
 
 ![formula](./asset/image.png)
@@ -8,6 +8,13 @@ This is the official repo of the AAAI2024 paper Mitigating the Impact of False N
 Here, $p$ stands for all the passages during the batch training (including positive and negative ones), $p^+$ for the positive passage, and $q$ for the query. Our proposed CCR can help the dense retrieval training robust to the false negative problem by helping the model to be more confident in its prediction and thus avoid overfitting to the noise information.
 
 
+## NEWS
+
+🔥 Trained model of MS-doc dataset with AR2+passage sieve algorithm has been released on [huggingface](https://huggingface.co/wangsky/AR2-sieved-MS). You can download and use it now!
+
+🔥 Trained model of NQ dataset with AR2+passage sieve algorithm has been released on [huggingface](https://huggingface.co/wangsky/AR2-sieved-NQ). You can download and use it now!
+
+Others are coming soon......
 
 ## Usage
 
@@ -35,6 +42,17 @@ $\beta$ in the CCR formulation is controlled by function f_beta in./sieve/loss.p
 ## Directly leverage the contrastive confidence regularizer
 
 This repo is for passage sieve and if you wish to leverage the contrastive confidence regularizer(CCR) directly you can refer to the code in our appendix and sieve/loss.py in this branch.
+
+One implementation example is as follows:
+
+```python
+s = get_scores(q, p) #get the similarity matrix of one query q and all passages p
+s_ = F.log_softmax(s, dim=1)#calculate softmax on passage dimension
+loss = F.nll_loss(s_,positive_idx,reduction="none") #the original NCE loss
+loss=loss-beta*(-1)*s_.mean(dim=1)#the only additional code to calculate CCR
+loss=loss.mean()
+```
+
 
 During the usage of the CCR, there are several guidelines:
 
