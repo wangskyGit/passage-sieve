@@ -10,7 +10,7 @@ Here, $p$ stands for all the passages during the batch training (including posit
 
 ## NEWS
 
-🔥 Trained model of MS-doc dataset with AR2+passage sieve algorithm has been released on [huggingface](https://huggingface.co/wangsky/AR2-sieved-MS). You can download and use it now!
+🔥 Trained model of MS-pas dataset with AR2+passage sieve algorithm has been released on [huggingface](https://huggingface.co/wangsky/AR2-sieved-MS). You can download and use it now!
 
 🔥 Trained model of NQ dataset with AR2+passage sieve algorithm has been released on [huggingface](https://huggingface.co/wangsky/AR2-sieved-NQ). You can download and use it now!
 
